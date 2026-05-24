@@ -200,23 +200,21 @@ ansible-vault create ansible/vars/credentials.yml
 
 ## 📝 Manutenção
 
-### Rotina Diária
+Na prática, a manutenção é reativa mais frequentemente do que reativa:
 
-- [ ] Verificar logs dos containers
-- [ ] Validar conectividade de dispositivos
-- [ ] Revisar falhas de playbooks
+**Quando algo quebra** (e vai quebrar):
+- SSH para investigar logs: `docker-compose logs -f netbox`
+- Validar conectividade: `curl -v http://localhost:8000/api/dcim/devices/`
+- Rodar inventário manualmente: `./scripts/manage.sh test-inventory`
 
-### Semanal
+**Antes de fazer mudanças criticas**:
+- Backup do PostgreSQL: `docker-compose exec postgres pg_dump -U netbox netbox > backup_$(date +%Y%m%d-%H%M%S).sql`
+- Testar playbook em modo dry-run: `ansible-playbook --check`
 
-- [ ] Executar playbooks de sincronização
-- [ ] Validar dados em Netbox
-- [ ] Revisar mudanças de configuração
-
-### Mensal
-
-- [ ] Backup do banco Netbox
-- [ ] Revisar tokens de API
-- [ ] Atualizar documentação
+**Depois de deixar rodar alguns meses**:
+- Revisar tokens expirados e regenerar
+- Limpeza de containers não usados
+- Atualizar imagens base quando necessário
 
 ### Backup e Recovery
 
@@ -261,6 +259,4 @@ docker run --rm -v netbox_media:/data -v $(pwd):/backup \
 - [Ansible Best Practices](https://docs.ansible.com/ansible/latest/tips_tricks/index.html)
 - [Netbox Ansible Modules](https://github.com/netbox-community/ansible_modules)
 
----
 
-**Última atualização**: Maio 2026

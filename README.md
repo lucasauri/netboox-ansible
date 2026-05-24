@@ -1,6 +1,10 @@
 # Netbox + Ansible Integration Project
 
-Projeto completo para integração entre **Netbox** (IPAM/DCIM) e **Ansible** (automação de infraestrutura).
+Plataforma de integração entre **Netbox** (IPAM/DCIM) e **Ansible** (automação de infraestrutura) para automação completa do ciclo de vida de dispositivos em redes corporativas.
+
+## Contexto
+
+Este projeto resolve o desafio de manter uma fonte única de verdade para infraestrutura heterogênea. Em ambientes onde você gerencia múltiplos tipos de dispositivos (roteadores, switches, servidores, firewalls) distribuídos em vários sites, o Netbox centraliza os dados e o Ansible executa as mudanças baseado nesses dados. Elimina sincronização manual e reduz inconsistências de configuração.
 
 ## 📋 Componentes
 
@@ -278,6 +282,4 @@ Para dúvidas, confira:
 2. Documentação oficial do Netbox e Ansible
 3. Issues no GitHub (se aplicável)
 
----
 
-**Desenvolvido para integração Netbox + Ansible** | Maio 2026

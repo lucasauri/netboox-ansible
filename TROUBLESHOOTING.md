@@ -382,6 +382,4 @@ Se o problema persistir:
    uname -a
    ```
 
----
 
-**Última atualização**: Maio 2026

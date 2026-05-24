@@ -1,19 +1,27 @@
 #!/usr/bin/env python3
 """
 Script: Adicionar dispositivos ao Netbox
-Permite adicionar novos dispositivos via API de forma programática
+Importa dispositivos via arquivo JSON para API do Netbox
 """
 
 import json
+import logging
 import os
 import requests
 import sys
 from urllib.parse import urljoin
 
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s', stream=sys.stderr)
+logger = logging.getLogger(__name__)
+
 class NetboxDeviceAdder:
     def __init__(self):
         self.netbox_url = os.getenv('NETBOX_URL', 'http://netbox:8000')
         self.netbox_token = os.getenv('NETBOX_TOKEN', '')
+        
+        if not self.netbox_token:
+            logger.error("NETBOX_TOKEN não definido")
+            sys.exit(1)
     
     def add_device(self, device_data):
         """Adiciona um novo dispositivo ao Netbox"""
@@ -28,36 +36,50 @@ class NetboxDeviceAdder:
                 url,
                 headers=headers,
                 json=device_data,
-                verify=False
+                verify=False,
+                timeout=10
             )
             response.raise_for_status()
             return response.json()
+        except requests.exceptions.Timeout:
+            logger.error("Timeout na conexão com Netbox")
+            return None
+        except requests.exceptions.HTTPError as e:
+            logger.error(f"Erro HTTP {response.status_code}: {response.text}")
+            return None
         except requests.exceptions.RequestException as e:
-            print(f"Erro ao adicionar dispositivo: {e}", file=sys.stderr)
-            if response.text:
-                print(f"Resposta: {response.text}", file=sys.stderr)
+            logger.error(f"Erro de conexão: {e}")
             return None
     
     def add_from_json(self, json_file):
         """Adiciona dispositivos a partir de arquivo JSON"""
+        if not os.path.exists(json_file):
+            logger.error(f"Arquivo não encontrado: {json_file}")
+            sys.exit(1)
+        
         try:
             with open(json_file, 'r') as f:
                 devices = json.load(f)
-            
-            if not isinstance(devices, list):
-                devices = [devices]
-            
-            for device in devices:
-                print(f"Adicionando dispositivo: {device.get('name')}")
-                result = self.add_device(device)
-                if result:
-                    print(f"  ✓ Dispositivo adicionado com sucesso (ID: {result.get('id')})")
-                else:
-                    print(f"  ✗ Falha ao adicionar dispositivo")
-        except FileNotFoundError:
-            print(f"Arquivo não encontrado: {json_file}", file=sys.stderr)
-        except json.JSONDecodeError:
-            print(f"Erro ao decodificar JSON: {json_file}", file=sys.stderr)
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON inválido em {json_file}: {e}")
+            sys.exit(1)
+        
+        if not isinstance(devices, list):
+            devices = [devices]
+        
+        success_count = 0
+        for device in devices:
+            name = device.get('name', 'unknown')
+            logger.info(f"Adicionando: {name}")
+            result = self.add_device(device)
+            if result:
+                logger.info(f"  Sucesso (ID: {result.get('id')})")
+                success_count += 1
+            else:
+                logger.warning(f"  Falha ao adicionar {name}")
+        
+        logger.info(f"\nResumo: {success_count}/{len(devices)} dispositivos adicionados")
+        return success_count == len(devices)
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
@@ -65,4 +87,5 @@ if __name__ == '__main__':
         sys.exit(1)
     
     adder = NetboxDeviceAdder()
-    adder.add_from_json(sys.argv[1])
+    success = adder.add_from_json(sys.argv[1])
+    sys.exit(0 if success else 1)

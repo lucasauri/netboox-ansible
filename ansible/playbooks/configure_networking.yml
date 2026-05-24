@@ -1,30 +1,27 @@
 ---
 # Playbook: Configurar dispositivos de rede
-# Descrição: Aplica configurações básicas em switches e roteadores
+# Descrição: Validar e preparar equipamentos de rede
 
-- name: Configurar dispositivos de rede
+- name: Preparar dispositivos de rede
   hosts: networking
-  gather_facts: yes
+  gather_facts: no
   
   tasks:
-    - name: Verificar conectividade com dispositivo
-      command: "ping -c 1 {{ ansible_host }}"
-      register: ping_result
+    - name: Testar conectividade SSH
+      wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        state: started
+        timeout: 10
+      register: ssh_check
       ignore_errors: yes
-      changed_when: false
     
-    - name: Exibir status de conectividade
+    - name: Host acessível
       debug:
-        msg: "Dispositivo {{ inventory_hostname }} está {% if ping_result.rc == 0 %}ONLINE{% else %}OFFLINE{% endif %}"
+        msg: "Dispositivo {{ inventory_hostname }} está acessível via SSH"
+      when: ssh_check is succeeded
     
-    - name: Coletar informações de rede (para Cisco)
-      include_tasks: "gather_network_info.yml"
-      when:
-        - ansible_os_family is defined
-        - 'IOS' in ansible_os_family or 'NX-OS' in ansible_os_family
-    
-    - name: Coletar informações de rede (para Juniper)
-      include_tasks: "gather_juniper_info.yml"
-      when:
-        - ansible_os_family is defined
-        - 'Juniper' in ansible_os_family
+    - name: Falha na conectividade
+      fail:
+        msg: "Não foi possível conectar em {{ inventory_hostname }}. Verifique IP e credenciais."
+      when: ssh_check is failed

@@ -1,23 +1,27 @@
 ---
-# Playbook: Verificar integridade de segurança
-# Descrição: Executa verificações de segurança em firewalls
+# Playbook: Verificar status de segurança
+# Descrição: Validar conectividade com equipamentos de segurança
 
-- name: Verificar integridade de segurança
+- name: Validar equipamentos de segurança
   hosts: security
-  gather_facts: yes
+  gather_facts: no
   
   tasks:
-    - name: Conectar ao firewall
-      debug:
-        msg: "Verificando firewall: {{ inventory_hostname }}"
+    - name: Testar conectividade
+      wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        state: started
+        timeout: 10
+      register: firewall_check
+      ignore_errors: yes
     
-    - name: Coletar status de serviços
-      shell: |
-        echo "Verificando serviços críticos..."
-        echo "Dispositivo: {{ inventory_hostname }}"
-        echo "Status: Conectado"
-      register: firewall_status
-    
-    - name: Exibir status
+    - name: Dispositivo respondendo
       debug:
-        msg: "{{ firewall_status.stdout_lines }}"
+        msg: "Firewall {{ inventory_hostname }} está online"
+      when: firewall_check is succeeded
+    
+    - name: Dispositivo não respondendo
+      debug:
+        msg: "AVISO: Firewall {{ inventory_hostname }} não responde em SSH"
+      when: firewall_check is failed

@@ -1,35 +1,48 @@
 ---
-# Playbook: Configurar servidores
-# Descrição: Aplica configurações básicas em servidores (Linux/Windows)
+# Playbook: Provisionar e configurar servidores
+# Descrição: Aplicar configurações de sistema operacional em servidores
 
 - name: Configurar servidores
   hosts: servers
   gather_facts: yes
   become: yes
   
-  tasks:
-    - name: Atualizar pacotes (Linux)
-      package:
-        name: "*"
-        state: latest
+  handlers:
+    - name: restart network
+      systemd:
+        name: networking
+        state: restarted
       when: ansible_os_family in ['Debian', 'RedHat']
-      ignore_errors: yes
+  
+  tasks:
+    - name: Validar conectividade
+      ping:
     
-    - name: Instalar ferramentas de monitoramento (Linux)
+    - name: Atualizar cache de pacotes (Debian)
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == 'Debian'
+    
+    - name: Atualizar cache de pacotes (RedHat)
+      yum:
+        update_cache: yes
+      when: ansible_os_family == 'RedHat'
+    
+    - name: Instalar ferramentas essenciais
       package:
         name:
-          - net-tools
           - curl
           - wget
-          - htop
+          - git
+          - net-tools
         state: present
-      when: ansible_os_family in ['Debian', 'RedHat']
-      ignore_errors: yes
+      register: install_result
     
-    - name: Exibir informações do servidor
+    - name: Coletar informações do servidor
       debug:
         msg: |
           Servidor: {{ inventory_hostname }}
           OS: {{ ansible_distribution }} {{ ansible_distribution_version }}
-          Memória: {{ ansible_memtotal_mb }}MB
-          CPU Cores: {{ ansible_processor_vcpus }}
+          CPUs: {{ ansible_processor_vcpus }}
+          RAM: {{ ansible_memtotal_mb }}MB
