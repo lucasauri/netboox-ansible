@@ -1,0 +1,49 @@
+---
+# Playbook: Sincronizar informações de dispositivos com Netbox
+# Descrição: Coleta informações de dispositivos e atualiza Netbox via API
+
+- name: Sincronizar dados de dispositivos com Netbox
+  hosts: all
+  gather_facts: yes
+  
+  vars:
+    netbox_url: "{{ lookup('env', 'NETBOX_URL') | default('http://netbox:8000') }}"
+    netbox_token: "{{ lookup('env', 'NETBOX_TOKEN') }}"
+  
+  tasks:
+    - name: Coletar informações do host
+      debug:
+        msg: |
+          Hostname: {{ inventory_hostname }}
+          IP: {{ ansible_host }}
+          OS: {{ ansible_os_family }}
+          Memória: {{ ansible_memtotal_mb }}MB
+    
+    - name: Preparar payload para Netbox
+      set_fact:
+        device_payload:
+          name: "{{ inventory_hostname }}"
+          status: "active"
+          device_type: "{{ device_type | default('generic') }}"
+          site: "{{ site | default('default') }}"
+          comments: "Sincronizado por Ansible em {{ now(utc=True) }}"
+    
+    - name: Atualizar dispositivo no Netbox (via API)
+      uri:
+        url: "{{ netbox_url }}/api/dcim/devices/{{ device_id }}/"
+        method: PATCH
+        headers:
+          Authorization: "Token {{ netbox_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body: "{{ device_payload }}"
+        validate_certs: no
+        status_code: [200, 201]
+      register: netbox_update
+      when: device_id is defined
+      ignore_errors: yes
+    
+    - name: Exibir resultado da atualização
+      debug:
+        msg: "{{ netbox_update.json | default('Falha na atualização') }}"
+      when: device_id is defined

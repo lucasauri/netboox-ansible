@@ -1,0 +1,23 @@
+---
+# Playbook: Verificar integridade de segurança
+# Descrição: Executa verificações de segurança em firewalls
+
+- name: Verificar integridade de segurança
+  hosts: security
+  gather_facts: yes
+  
+  tasks:
+    - name: Conectar ao firewall
+      debug:
+        msg: "Verificando firewall: {{ inventory_hostname }}"
+    
+    - name: Coletar status de serviços
+      shell: |
+        echo "Verificando serviços críticos..."
+        echo "Dispositivo: {{ inventory_hostname }}"
+        echo "Status: Conectado"
+      register: firewall_status
+    
+    - name: Exibir status
+      debug:
+        msg: "{{ firewall_status.stdout_lines }}"

@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # Banco de dados PostgreSQL para Netbox
+  postgres:
+    image: postgres:15-alpine
+    container_name: netbox-postgres
+    environment:
+      POSTGRES_USER: netbox
+      POSTGRES_PASSWORD: netbox_password
+      POSTGRES_DB: netbox
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - netbox-ansible
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U netbox"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Cache Redis para Netbox
+  redis:
+    image: redis:7-alpine
+    container_name: netbox-redis
+    networks:
+      - netbox-ansible
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Netbox
+  netbox:
+    image: netbox:3.6-alpine
+    container_name: netbox
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      ALLOWED_HOSTS: "*"
+      DB_HOST: postgres
+      DB_NAME: netbox
+      DB_USER: netbox
+      DB_PASSWORD: netbox_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SECRET_KEY: 'your-secret-key-change-this'
+      SUPERUSER_USERNAME: admin
+      SUPERUSER_PASSWORD: admin
+      SUPERUSER_EMAIL: admin@example.com
+    ports:
+      - "8000:8000"
+    volumes:
+      - netbox_media:/opt/netbox/netbox/media
+      - ./netbox_config:/etc/netbox/config
+    networks:
+      - netbox-ansible
+
+  # Ansible Control Node
+  ansible:
+    image: alpine:latest
+    container_name: ansible-control
+    depends_on:
+      - netbox
+    volumes:
+      - ./ansible:/ansible
+      - ./scripts:/scripts
+      - /var/run/docker.sock:/var/run/docker.sock
+    working_dir: /ansible
+    networks:
+      - netbox-ansible
+    command: tail -f /dev/null
+    environment:
+      NETBOX_URL: "http://netbox:8000"
+      NETBOX_TOKEN: "0123456789abcdef0123456789abcdef01234567"
+
+volumes:
+  postgres_data:
+  netbox_media:
+
+networks:
+  netbox-ansible:
+    driver: bridge

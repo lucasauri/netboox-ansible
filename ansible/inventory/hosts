@@ -1,0 +1,17 @@
+[all]
+localhost ansible_connection=local
+
+[networking]
+# Devices will be populated by dynamic inventory script
+
+[servers]
+# Devices will be populated by dynamic inventory script
+
+[security]
+# Devices will be populated by dynamic inventory script
+
+[all:vars]
+ansible_connection=ssh
+ansible_user=admin
+ansible_become=yes
+ansible_become_method=sudo

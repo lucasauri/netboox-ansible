@@ -1,0 +1,30 @@
+[
+  {
+    "name": "switch-01",
+    "device_type": 1,
+    "site": 1,
+    "status": "active",
+    "comments": "Switch de acesso - Exemplo"
+  },
+  {
+    "name": "router-01",
+    "device_type": 2,
+    "site": 1,
+    "status": "active",
+    "comments": "Roteador principal - Exemplo"
+  },
+  {
+    "name": "server-01",
+    "device_type": 3,
+    "site": 1,
+    "status": "active",
+    "comments": "Servidor de aplicação - Exemplo"
+  },
+  {
+    "name": "firewall-01",
+    "device_type": 4,
+    "site": 1,
+    "status": "active",
+    "comments": "Firewall perimetral - Exemplo"
+  }
+]

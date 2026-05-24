@@ -1,0 +1,30 @@
+---
+# Playbook: Configurar dispositivos de rede
+# Descrição: Aplica configurações básicas em switches e roteadores
+
+- name: Configurar dispositivos de rede
+  hosts: networking
+  gather_facts: yes
+  
+  tasks:
+    - name: Verificar conectividade com dispositivo
+      command: "ping -c 1 {{ ansible_host }}"
+      register: ping_result
+      ignore_errors: yes
+      changed_when: false
+    
+    - name: Exibir status de conectividade
+      debug:
+        msg: "Dispositivo {{ inventory_hostname }} está {% if ping_result.rc == 0 %}ONLINE{% else %}OFFLINE{% endif %}"
+    
+    - name: Coletar informações de rede (para Cisco)
+      include_tasks: "gather_network_info.yml"
+      when:
+        - ansible_os_family is defined
+        - 'IOS' in ansible_os_family or 'NX-OS' in ansible_os_family
+    
+    - name: Coletar informações de rede (para Juniper)
+      include_tasks: "gather_juniper_info.yml"
+      when:
+        - ansible_os_family is defined
+        - 'Juniper' in ansible_os_family
