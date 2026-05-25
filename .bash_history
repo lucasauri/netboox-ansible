@@ -9,3 +9,6 @@ ifconfig
 ip addr show
 ping 8.8.8.8
 sudo su
+cd /home/lucas
+git remote set-url origin https://github.com/lucasauri/netbox-ansible.git
+git remote -v

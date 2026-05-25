@@ -198,20 +198,18 @@ ansible-vault create ansible/vars/credentials.yml
    cache_file = '/tmp/netbox_inventory.cache'
    ```
 
-## 📝 Manutenção
+## 📈 Manutenção Prática
 
-Na prática, a manutenção é reativa mais frequentemente do que reativa:
-
-**Quando algo quebra** (e vai quebrar):
+**Quando algo quebra:**
 - SSH para investigar logs: `docker-compose logs -f netbox`
 - Validar conectividade: `curl -v http://localhost:8000/api/dcim/devices/`
 - Rodar inventário manualmente: `./scripts/manage.sh test-inventory`
 
-**Antes de fazer mudanças criticas**:
+**Antes de mudanças críticas:**
 - Backup do PostgreSQL: `docker-compose exec postgres pg_dump -U netbox netbox > backup_$(date +%Y%m%d-%H%M%S).sql`
 - Testar playbook em modo dry-run: `ansible-playbook --check`
 
-**Depois de deixar rodar alguns meses**:
+**Após alguns meses em produção:**
 - Revisar tokens expirados e regenerar
 - Limpeza de containers não usados
 - Atualizar imagens base quando necessário

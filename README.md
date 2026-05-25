@@ -4,7 +4,7 @@ Plataforma de integração entre **Netbox** (IPAM/DCIM) e **Ansible** (automaç�
 
 ## Contexto
 
-Este projeto resolve o desafio de manter uma fonte única de verdade para infraestrutura heterogênea. Em ambientes onde você gerencia múltiplos tipos de dispositivos (roteadores, switches, servidores, firewalls) distribuídos em vários sites, o Netbox centraliza os dados e o Ansible executa as mudanças baseado nesses dados. Elimina sincronização manual e reduz inconsistências de configuração.
+Laboratório pessoal desenvolvido para integrar a API do Netbox com o nó de controle do Ansible via Docker. Em ambientes onde você gerencia múltiplos tipos de dispositivos (roteadores, switches, servidores, firewalls) distribuídos em vários sites, o Netbox centraliza os dados e o Ansible executa as mudanças baseado nesses dados. Elimina sincronização manual e reduz inconsistências de configuração.
 
 ## 📋 Componentes
 

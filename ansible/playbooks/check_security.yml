@@ -1,33 +1,24 @@
 ---
 # Playbook: Verificar integridade de segurança
-# Descrição: Validar status e configuração de equipamentos de segurança
+# Descrição: Executa validações reais no estado do filtro de pacotes do firewall
 
-- name: Validar equipamentos de segurança
+- name: Verificar integridade de segurança
   hosts: security
   gather_facts: no
   
   tasks:
-    - name: Testar conectividade com firewall
-      wait_for:
-        host: "{{ ansible_host }}"
-        port: 22
-        state: started
-        timeout: 10
-      register: firewall_check
-      ignore_errors: yes
-    
-    - name: Falha na conectividade
-      fail:
-        msg: "Firewall {{ inventory_hostname }} não acessível em {{ ansible_host }}:22"
-      when: firewall_check is failed
-    
-    - name: Obter informações de status
-      command: "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@{{ ansible_host }} 'show system' 2>/dev/null || echo 'Status obtido'"
-      register: fw_status
+    - name: Validar estado ativo do filtro de pacotes (pfSense/BSD)
+      command: pfctl -si
+      register: firewall_status
       changed_when: false
-      ignore_errors: yes
-    
-    - name: Validar firewall online
+
+    - name: Verificar integridade das regras carregadas
+      command: pfctl -s rules
+      register: firewall_rules
+      changed_when: false
+
+    - name: Exibir sumário de integridade
       debug:
-        msg: "Firewall {{ inventory_hostname }} verificado e respondendo"
-      when: firewall_check is succeeded
+        msg: 
+          - "Firewall Host: {{ inventory_hostname }}"
+          - "Status do Filtro: {{ 'Ativo' if 'Enabled' in firewall_status.stdout else 'Atenção/Inativo' }}"

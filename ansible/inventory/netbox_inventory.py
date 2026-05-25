@@ -31,7 +31,7 @@ class NetboxInventory:
         }
     
     def fetch_devices(self):
-        """Busca todos os dispositivos do Netbox ou falha crítica"""
+        """Busca todos os dispositivos do Netbox ou falha criticamente"""
         url = urljoin(self.netbox_url, '/api/dcim/devices/')
         headers = {'Authorization': f'Token {self.netbox_token}'}
         
@@ -39,17 +39,8 @@ class NetboxInventory:
             response = requests.get(url, headers=headers, verify=False, timeout=10)
             response.raise_for_status()
             return response.json().get('results', [])
-        except requests.exceptions.Timeout:
-            logger.error(f"Timeout ao conectar em {self.netbox_url}")
-            sys.exit(1)
-        except requests.exceptions.ConnectionError:
-            logger.error(f"Erro de conexão: Não foi possível alcançar {self.netbox_url}")
-            sys.exit(1)
-        except requests.exceptions.HTTPError:
-            logger.error(f"Erro HTTP {response.status_code}: Verifique token e URL")
-            sys.exit(1)
         except requests.exceptions.RequestException as e:
-            logger.error(f"Erro crítico ao conectar com Netbox: {e}")
+            print(f"Erro crítico: Impossível conectar à API do Netbox: {e}", file=sys.stderr)
             sys.exit(1)
     
     def get_device_type(self, device):
