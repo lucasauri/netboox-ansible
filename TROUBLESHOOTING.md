@@ -356,14 +356,14 @@ docker-compose config --resolve-image-digests
 
 Siga este checklist se tudo parar de funcionar:
 
-- [ ] `./scripts/manage.sh status` - todos rodando?
-- [ ] `./scripts/manage.sh logs netbox` - erros?
-- [ ] `curl http://localhost:8000` - Netbox responde?
-- [ ] `./scripts/manage.sh token` - token válido?
-- [ ] `./scripts/manage.sh test-inventory` - inventário ok?
-- [ ] `./scripts/manage.sh list-devices` - dispositivos visíveis?
-- [ ] Verificar .env tem valores corretos
-- [ ] Se tudo falhar: `docker-compose down -v && docker-compose up -d`
+1. `./scripts/manage.sh status` - todos rodando?
+2. `./scripts/manage.sh logs netbox` - erros?
+3. `curl http://localhost:8000` - Netbox responde?
+4. `./scripts/manage.sh token` - token válido?
+5. `./scripts/manage.sh test-inventory` - inventário ok?
+6. `./scripts/manage.sh list-devices` - dispositivos visíveis?
+7. Verificar .env tem valores corretos
+8. Se tudo falhar: `docker-compose down -v && docker-compose up -d`
 
 ---
 

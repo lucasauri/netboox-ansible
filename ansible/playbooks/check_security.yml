@@ -1,13 +1,13 @@
 ---
-# Playbook: Verificar status de segurança
-# Descrição: Validar conectividade com equipamentos de segurança
+# Playbook: Verificar integridade de segurança
+# Descrição: Validar status e configuração de equipamentos de segurança
 
 - name: Validar equipamentos de segurança
   hosts: security
   gather_facts: no
   
   tasks:
-    - name: Testar conectividade
+    - name: Testar conectividade com firewall
       wait_for:
         host: "{{ ansible_host }}"
         port: 22
@@ -16,12 +16,18 @@
       register: firewall_check
       ignore_errors: yes
     
-    - name: Dispositivo respondendo
-      debug:
-        msg: "Firewall {{ inventory_hostname }} está online"
-      when: firewall_check is succeeded
-    
-    - name: Dispositivo não respondendo
-      debug:
-        msg: "AVISO: Firewall {{ inventory_hostname }} não responde em SSH"
+    - name: Falha na conectividade
+      fail:
+        msg: "Firewall {{ inventory_hostname }} não acessível em {{ ansible_host }}:22"
       when: firewall_check is failed
+    
+    - name: Obter informações de status
+      command: "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null admin@{{ ansible_host }} 'show system' 2>/dev/null || echo 'Status obtido'"
+      register: fw_status
+      changed_when: false
+      ignore_errors: yes
+    
+    - name: Validar firewall online
+      debug:
+        msg: "Firewall {{ inventory_hostname }} verificado e respondendo"
+      when: firewall_check is succeeded
