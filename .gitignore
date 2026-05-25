@@ -83,3 +83,4 @@ npm-debug.log
 *credentials*
 *secrets*
 *password*
+.vscode-server/
